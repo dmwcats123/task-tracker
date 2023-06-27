@@ -11,14 +11,10 @@ export async function POST(req, res) {
     const body = await req.text();
     const data = JSON.parse(body);
 
-    const username = data.username;
-    const password = data.password;
-    const registering = data.registering;
+    const { username, password, registering } = data;
 
     const db = await connectToDatabase();
-    console.log(db);
     const collection = db.collection("users");
-    console.log(collection);
     const user = await collection.findOne({ username: username });
 
     if (registering === false) {
@@ -38,8 +34,30 @@ export async function POST(req, res) {
           }
         );
       }
+    } else {
+      if (!user) {
+        collection.insertOne({
+          username: username,
+          password: password,
+        });
+        return NextResponse.json(
+          { message: "Successful registration" },
+          {
+            status: "200",
+          }
+        );
+      } else {
+        return NextResponse.json(
+          { message: "User already exists" },
+          {
+            status: "404",
+          }
+        );
+      }
     }
   } catch (error) {
     console.error("Error: ", error);
   }
 }
+
+async function registerUser(username, password, usersCollection) {}
