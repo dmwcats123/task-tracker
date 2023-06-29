@@ -18,14 +18,22 @@ export async function POST(req, res) {
     const user = await collection.findOne({ username: username });
 
     if (registering === false) {
-      console.log(user);
       if (user) {
-        return NextResponse.json(
-          { message: "Successful login" },
-          {
-            status: "200",
-          }
-        );
+        if (password === user.password) {
+          return NextResponse.json(
+            { message: "Successful login" },
+            {
+              status: "200",
+            }
+          );
+        } else {
+          return NextResponse.json(
+            { message: "Incorrect Password" },
+            {
+              status: "404",
+            }
+          );
+        }
       } else {
         return NextResponse.json(
           { message: "User not found" },

@@ -32,13 +32,14 @@ function UserAuthentication() {
         },
         body: JSON.stringify(userInfo),
       });
+      const resData = await response.json();
       if (response.ok) {
         // Handle successful login
         // You can store the user token or any other necessary information
-        console.log("Login Successful");
+        push("/ToDoList" + "?username=" + username);
       } else {
         // Handle login failure
-        console.log("Login failed");
+        console.log(resData.message);
         // You can display an error message to the user or perform any other necessary action
       }
     } catch (error) {
