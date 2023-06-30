@@ -6,6 +6,7 @@ function UserAuthentication() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [inputError, setInputError] = useState("");
   const { push } = useRouter();
 
   const handleUsernameChange = (e) => {
@@ -39,12 +40,12 @@ function UserAuthentication() {
         push("/MainPage" + "?username=" + username);
       } else {
         // Handle login failure
-        console.log(resData.message);
+        setInputError(resData.message);
         // You can display an error message to the user or perform any other necessary action
       }
     } catch (error) {
       // Handle error if API request fails
-      console.error("Login error:", error);
+      setInputError(error);
     }
 
     // Clear form fields
@@ -53,7 +54,7 @@ function UserAuthentication() {
   };
 
   return (
-    <div className="max-w-xs mx-auto bg-white shadow-md rounded px-8 py-6">
+    <div className="max-w-xs mx-auto my-auto bg-slate-100 shadow-md rounded px-8 py-6">
       <h2 className="text-2xl text-center mb-6">
         {isRegistering ? "Register" : "Login"}
       </h2>
@@ -106,6 +107,9 @@ function UserAuthentication() {
           {isRegistering ? "Login" : "Register"}
         </button>
       </p>
+      {inputError && (
+        <div className="input-form-error text-red-500 mt-4">{inputError}</div>
+      )}
     </div>
   );
 }
