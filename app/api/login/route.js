@@ -48,6 +48,12 @@ export async function POST(req, res) {
           username: username,
           password: password,
         });
+        const taskCollection = db.collection("tasks");
+        taskCollection.insertOne({
+          id: Math.random().toString(36).substring(7),
+          username: username,
+          tasks: [],
+        });
         return NextResponse.json(
           { message: "Successful registration" },
           {
