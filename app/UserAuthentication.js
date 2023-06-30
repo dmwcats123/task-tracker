@@ -17,8 +17,15 @@ function UserAuthentication() {
     setPassword(e.target.value);
   };
 
+  const toggleRegister = () => {
+    setInputError("");
+    setIsRegistering(!isRegistering);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setInputError("");
 
     const userInfo = {
       registering: isRegistering,
@@ -102,7 +109,7 @@ function UserAuthentication() {
         {isRegistering ? "Already have an account?" : "Don't have an account?"}
         <button
           className="text-blue-500 hover:text-blue-700 ml-1 focus:outline-none"
-          onClick={() => setIsRegistering(!isRegistering)}
+          onClick={() => toggleRegister()}
         >
           {isRegistering ? "Login" : "Register"}
         </button>
