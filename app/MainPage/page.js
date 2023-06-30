@@ -26,6 +26,9 @@ function MainPage() {
   const [sortByMenuVis, setSortByMenuVis] = useState(false);
   const [sortByMenuLoc, setSortByMenuLoc] = useState({ x: 0, y: 0 });
   const sortByMenuRef = useRef(null);
+  const [inProgressChecked, setInProgressChecked] = useState(true);
+  const [notStartedChecked, setNotStartedChecked] = useState(true);
+  const [completedChecked, setCompletedChecked] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,69 +103,73 @@ function MainPage() {
   const handleModalSubmit = async (e) => {
     e.preventDefault();
 
-    let newTaskID = null;
-    if (!isEdit) {
-      newTaskID = Math.random().toString(36).substring(7);
-    } else {
-      newTaskID = contextMenuTask._id;
-    }
-    console.log(newTaskDueDate);
-    const dueDateString =
-      newTaskDueDate.toString().split(" ")[1] +
-      " " +
-      newTaskDueDate.toString().split(" ")[2] +
-      " " +
-      newTaskDueDate.toString().split(" ")[3];
-    const newTaskData = {
-      _id: newTaskID,
-      title: newTaskTitle,
-      description: newTaskDescription,
-      status: newTaskStatus,
-      dueDate: dueDateString,
-      dueDateISO: newTaskDueDate,
-    };
+    if (newTaskTitle && newTaskDescription && newTaskDueDate && newTaskStatus) {
+      let newTaskID = null;
+      if (!isEdit) {
+        newTaskID = Math.random().toString(36).substring(7);
+      } else {
+        newTaskID = contextMenuTask._id;
+      }
+      console.log(newTaskDueDate);
+      const dueDateString =
+        newTaskDueDate.toString().split(" ")[1] +
+        " " +
+        newTaskDueDate.toString().split(" ")[2] +
+        " " +
+        newTaskDueDate.toString().split(" ")[3];
+      const newTaskData = {
+        _id: newTaskID,
+        title: newTaskTitle,
+        description: newTaskDescription,
+        status: newTaskStatus,
+        dueDate: dueDateString,
+        dueDateISO: newTaskDueDate,
+      };
 
-    const reqData = {
-      username: username,
-      newTaskData: newTaskData,
-    };
-    if (!isEdit) {
-      try {
-        const response = await fetch("/api/NewTask", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(reqData),
-        });
-        const data = await response.json();
-        setTaskList(data.tasks);
-        setModalOpen(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      const reqData = {
+        username: username,
+        newTaskData: newTaskData,
+      };
+      if (!isEdit) {
+        try {
+          const response = await fetch("/api/NewTask", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(reqData),
+          });
+          const data = await response.json();
+          setTaskList(data.tasks);
+          setModalOpen(false);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      } else {
+        try {
+          const response = await fetch("/api/EditTask", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(reqData),
+          });
+          const data = await response.json();
+          setTaskList(data.tasks);
+          setModalOpen(false);
+          setIsEdit(false);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
       }
+      setNewTaskTitle("");
+      setNewTaskDescription("");
+      setNewTaskDueDate(null);
+      setNewTaskStatus(null);
+      setIsEdit(false);
     } else {
-      try {
-        const response = await fetch("/api/EditTask", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(reqData),
-        });
-        const data = await response.json();
-        setTaskList(data.tasks);
-        setModalOpen(false);
-        setIsEdit(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+      setInputError("Please do not leave any fields blank");
     }
-    setNewTaskTitle("");
-    setNewTaskDescription("");
-    setNewTaskDueDate(null);
-    setNewTaskStatus(null);
-    setIsEdit(false);
   };
 
   const handleDateChange = (date) => {
@@ -280,8 +287,29 @@ function MainPage() {
     }
   };
 
+  const handleCheckboxChange = (event) => {
+    const { id, checked } = event.target;
+
+    // Update the corresponding checkbox state
+    if (id === "notStartedCheckbox") {
+      setNotStartedChecked(checked);
+    } else if (id === "inProgressCheckbox") {
+      setInProgressChecked(checked);
+    } else if (id === "completedCheckbox") {
+      setCompletedChecked(checked);
+    }
+  };
+
   const renderTasks = () => {
     return sortTasks().map((task) => {
+      if (
+        (task.status === "Not Started" && !notStartedChecked) ||
+        (task.status === "In Progress" && !inProgressChecked) ||
+        (task.status === "Completed" && !completedChecked)
+      ) {
+        return null; // Skip rendering the task if checkbox is not checked for its status
+      }
+
       return (
         <li className="list-none" key={task._id}>
           <div
@@ -300,7 +328,7 @@ function MainPage() {
               <button
                 id={task._id}
                 onClick={(e) => renderContextMenu(e, task)}
-                className="ml-auto"
+                className="ml-auto h-fit"
               >
                 &#xFE19;
               </button>
@@ -343,6 +371,68 @@ function MainPage() {
               </button>
             </div>
           </div>
+          <div className="my-auto flex flex-row">
+            <div className="flex flex-row">
+              <div className="collapse">
+                <input
+                  type="checkbox"
+                  id="notStartedCheckbox"
+                  defaultChecked
+                  onChange={handleCheckboxChange}
+                />
+              </div>
+              <label
+                className={
+                  notStartedChecked
+                    ? "hover:cursor-pointer text-notStartedBorder"
+                    : "hover:cursor-pointer text-notStartedBorder opacity-20"
+                }
+                for="notStartedCheckbox"
+              >
+                Not Started
+              </label>
+            </div>
+            <div className="flex flex-row">
+              <div className="collapse text-red">
+                <input
+                  type="checkbox"
+                  id="inProgressCheckbox"
+                  defaultChecked
+                  onChange={handleCheckboxChange}
+                />
+              </div>
+              <label
+                className={
+                  inProgressChecked
+                    ? "hover:cursor-pointer text-inProgressBorder"
+                    : "hover:cursor-pointer text-inProgressBorder opacity-20"
+                }
+                for="inProgressCheckbox"
+              >
+                In Progress
+              </label>
+            </div>
+            <div className="flex flex-row">
+              <div className="collapse">
+                <input
+                  type="checkbox"
+                  id="completedCheckbox"
+                  defaultChecked
+                  onChange={handleCheckboxChange}
+                />
+              </div>
+              <label
+                className={
+                  completedChecked
+                    ? "hover:cursor-pointer text-completeBorder"
+                    : "hover:cursor-pointer text-completeBorder opacity-20"
+                }
+                for="completedCheckbox"
+              >
+                Completed
+              </label>
+            </div>
+          </div>
           <button
             onClick={addTaskClicked}
             className="w-full max-w-xs my-2 mr-5 px-4 py-2 bg-inProgressBorder text-white rounded hover:bg-inProgressHover text-center"
@@ -352,44 +442,20 @@ function MainPage() {
         </div>
 
         <div className="grid grid-cols-4 gap-1">
-          {
-            taskList.length > 0 && renderTasks()
-            /* 
-            taskList.map((task) => (
-              <li className="list-none" key={task._id}>
-                <div
-                  className={
-                    task.status === "Completed"
-                      ? "max-w-xs m-2 shadow-md rounded px-8 py-6 border-2 border-completeBorder  bg-completed"
-                      : task.status === "Not Started"
-                      ? "max-w-xs m-2 shadow-md rounded px-8 py-6 border-2 border-notStartedBorder  bg-notStarted"
-                      : "max-w-xs m-2 shadow-md rounded px-8 py-6 border-2 border-inProgressBorder bg-inProgress"
-                  }
-                >
-                  <div className="flex flex-row w-full">
-                    <div>{task.title}</div>
-                    <button
-                      id={task._id}
-                      onClick={(e) => renderContextMenu(e, task)}
-                      className="ml-auto"
-                    >
-                      &#xFE19;
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap">{task.description}</div>
-                  <div className="flex flex-wrap">{task.status}</div>
-                  <div className="flex flex-wrap">{task.dueDate}</div>
-                </div>
-              </li>
-            ))}
-            */
-          }
+          {taskList.length > 0 && renderTasks()}
         </div>
       </div>
 
       {contextMenuVis && (
         <div
-          className="menu bg-slate-200 p-2 rounded border-2"
+          className={
+            "menu p-2 rounded border-2 " + contextMenuTask.status ===
+            "Completed"
+              ? "max-w-xs m-2 shadow-md rounded border-2 border-completeBorder  bg-completed"
+              : contextMenuTask.status === "Not Started"
+              ? "max-w-xs m-2 shadow-md rounded border-2 border-notStartedBorder  bg-notStarted"
+              : "max-w-xs m-2 shadow-md rounded border-2 border-inProgressBorder bg-inProgress"
+          }
           ref={contextMenuRef}
           style={{
             position: "absolute",
@@ -398,10 +464,26 @@ function MainPage() {
           }}
         >
           <ul>
-            <li>
+            <li
+              className={
+                contextMenuTask.status === "Completed"
+                  ? "hover:bg-completeBorder"
+                  : contextMenuTask.status === "Not Started"
+                  ? "hover:bg-notStartedBorder"
+                  : "hover:bg-inProgressBorder"
+              }
+            >
               <button onClick={handleDeleteClicked}>Delete</button>
             </li>
-            <li>
+            <li
+              className={
+                contextMenuTask.status === "Completed"
+                  ? "hover:bg-completeBorder"
+                  : contextMenuTask.status === "Not Started"
+                  ? "hover:bg-notStartedBorder"
+                  : "hover:bg-inProgressBorder"
+              }
+            >
               <button onClick={handleEditClicked}>Edit</button>
             </li>
           </ul>
