@@ -36,7 +36,7 @@ function UserAuthentication() {
       if (response.ok) {
         // Handle successful login
         // You can store the user token or any other necessary information
-        push("/ToDoList" + "?username=" + username);
+        push("/MainPage" + "?username=" + username);
       } else {
         // Handle login failure
         console.log(resData.message);
