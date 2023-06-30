@@ -371,8 +371,9 @@ function MainPage() {
               </button>
             </div>
           </div>
-          <div className="my-auto flex flex-row">
-            <div className="flex flex-row">
+          <div className="my-auto flex flex-row font-light text-sm">
+            <div className="flex flex-row ">
+              <div>Filter: </div>
               <div className="collapse">
                 <input
                   type="checkbox"
@@ -491,7 +492,7 @@ function MainPage() {
       )}
       {sortByMenuVis && (
         <div
-          className="menu bg-slate-200 p-2 rounded border-2"
+          className="menu bg-slate-200 rounded border-2"
           ref={sortByMenuRef}
           style={{
             position: "absolute",
@@ -500,13 +501,13 @@ function MainPage() {
           }}
         >
           <ul>
-            <li>
+            <li className="hover:bg-slate-400 rounded p-2">
               <button onClick={handleSortDateClicked}>Due Date</button>
             </li>
-            <li>
+            <li className="hover:bg-slate-400 rounded p-2">
               <button onClick={handleSortStatusClicked}>Status</button>
             </li>
-            <li>
+            <li className="hover:bg-slate-400 rounded p-2">
               <button onClick={handleSortTitleClicked}>Title</button>
             </li>
           </ul>
